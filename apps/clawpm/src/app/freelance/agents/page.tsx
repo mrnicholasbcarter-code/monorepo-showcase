@@ -1,60 +1,17 @@
 'use client';
 
 import { AgentCard, Button } from '@monorepo/ui';
-import type { Agent } from '@monorepo/types';
-
-// Mock data
-const mockAgents: Agent[] = [
-  {
-    id: '1',
-    name: 'ArchBot Alpha',
-    role: 'architecture',
-    status: 'active',
-    currentTask: 'Designing microservices architecture for Project X',
-    completedTasks: 47,
-    successRate: 0.94,
-    spawnedAt: new Date('2026-03-01'),
-    lastActive: new Date(),
-    capabilities: ['System Design', 'Scalability', 'Cloud Architecture', 'API Design'],
-  },
-  {
-    id: '2',
-    name: 'QA Sentinel',
-    role: 'qa',
-    status: 'busy',
-    currentTask: 'Running integration tests on payment module',
-    completedTasks: 89,
-    successRate: 0.97,
-    spawnedAt: new Date('2026-02-15'),
-    lastActive: new Date(),
-    capabilities: ['Automated Testing', 'Code Review', 'Bug Detection', 'Performance Testing'],
-  },
-  {
-    id: '3',
-    name: 'DevOps Commander',
-    role: 'devops',
-    status: 'idle',
-    completedTasks: 56,
-    successRate: 0.91,
-    spawnedAt: new Date('2026-02-20'),
-    lastActive: new Date(),
-    capabilities: ['CI/CD', 'Docker', 'Kubernetes', 'Monitoring'],
-  },
-  {
-    id: '4',
-    name: 'Sales Navigator',
-    role: 'sales',
-    status: 'active',
-    currentTask: 'Following up with 3 high-value leads',
-    completedTasks: 34,
-    successRate: 0.76,
-    spawnedAt: new Date('2026-03-05'),
-    lastActive: new Date(),
-    capabilities: ['Lead Generation', 'Outreach', 'Proposal Optimization', 'CRM Management'],
-  },
-];
+import { trpc } from '@/lib/trpc';
 
 export default function AgentsPage() {
+  // Fetch agents from API
+  const { data: agents, isLoading, error } = trpc.agents.list.useQuery({
+    status: 'all',
+    limit: 50,
+  });
+
+  const { data: stats } = trpc.agents.getStats.useQuery();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-ocean-50 to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -67,37 +24,60 @@ export default function AgentsPage() {
         </div>
 
         {/* Agent Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Total Agents</p>
-            <p className="text-2xl font-bold text-gray-900">{mockAgents.length}</p>
+        {stats && (
+          <div className="grid grid-cols-4 gap-4 mb-8">
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <p className="text-sm text-gray-600">Total Agents</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalAgents}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <p className="text-sm text-gray-600">Active</p>
+              <p className="text-2xl font-bold text-green-600">{stats.activeAgents}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <p className="text-sm text-gray-600">Tasks Completed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.totalTasksCompleted}</p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <p className="text-sm text-gray-600">Avg Success Rate</p>
+              <p className="text-2xl font-bold text-ocean-600">
+                {(stats.avgSuccessRate * 100).toFixed(0)}%
+              </p>
+            </div>
           </div>
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Active</p>
-            <p className="text-2xl font-bold text-green-600">
-              {mockAgents.filter(a => a.status === 'active').length}
-            </p>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="inline-block w-8 h-8 border-4 border-ocean-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-600">Loading agents...</p>
           </div>
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Tasks Completed</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {mockAgents.reduce((sum, a) => sum + a.completedTasks, 0)}
-            </p>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            Error loading agents: {error.message}
           </div>
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Avg Success Rate</p>
-            <p className="text-2xl font-bold text-ocean-600">
-              {(mockAgents.reduce((sum, a) => sum + a.successRate, 0) / mockAgents.length * 100).toFixed(0)}%
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* Agents Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockAgents.map(agent => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
-        </div>
+        {!isLoading && !error && agents && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {agents.map(agent => (
+                <AgentCard key={agent.id} agent={agent} />
+              ))}
+            </div>
+
+            {agents.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                No agents spawned yet
+              </div>
+            )}
+          </>
+        )}
 
         {/* Spawn Agent Section */}
         <div className="mt-8 bg-gradient-to-r from-ocean-500 to-blue-600 rounded-lg p-8 text-white">

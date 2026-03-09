@@ -2,18 +2,12 @@
 
 import { StatsCard, Button } from '@monorepo/ui';
 import Link from 'next/link';
-
-// Mock data - replace with real API calls
-const stats = {
-  totalProposals: 127,
-  activeProposals: 23,
-  winRate: 34.2,
-  activeAgents: 6,
-  tasksCompleted: 89,
-  avgResponseTime: 4.2,
-};
+import { trpc } from '@/lib/trpc';
 
 export default function FreelanceDashboard() {
+  const { data: proposalStats } = trpc.proposals.getStats.useQuery();
+  const { data: agentStats } = trpc.agents.getStats.useQuery();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-ocean-50 to-blue-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -37,37 +31,33 @@ export default function FreelanceDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <StatsCard
             title="Total Proposals"
-            value={stats.totalProposals}
-            change={{ value: 12, trend: 'up' }}
+            value={proposalStats?.totalProposals ?? 0}
             icon="📄"
           />
           <StatsCard
-            title="Active Proposals"
-            value={stats.activeProposals}
-            icon="⏳"
+            title="Accepted Proposals"
+            value={proposalStats?.acceptedProposals ?? 0}
+            icon="✅"
           />
           <StatsCard
             title="Win Rate"
-            value={`${stats.winRate}%`}
-            change={{ value: 5.3, trend: 'up' }}
+            value={`${proposalStats?.winRate ?? 0}%`}
             icon="🎯"
           />
           <StatsCard
             title="Active Agents"
-            value={stats.activeAgents}
+            value={agentStats?.activeAgents ?? 0}
             icon="🤖"
           />
           <StatsCard
-            title="Tasks Completed"
-            value={stats.tasksCompleted}
-            change={{ value: 8, trend: 'up' }}
-            icon="✅"
+            title="Total Agents"
+            value={agentStats?.totalAgents ?? 0}
+            icon="👥"
           />
           <StatsCard
-            title="Avg Response Time"
-            value={`${stats.avgResponseTime}h`}
-            change={{ value: 15, trend: 'down' }}
-            icon="⚡"
+            title="Tasks Completed"
+            value={agentStats?.totalTasksCompleted ?? 0}
+            icon="✅"
           />
         </div>
 

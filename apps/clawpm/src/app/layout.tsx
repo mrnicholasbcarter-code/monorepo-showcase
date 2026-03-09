@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { TRPCProvider } from '@/lib/trpc-provider';
 
 export const metadata: Metadata = {
   title: 'ClawPM - AI-First Freelance Management',
@@ -9,12 +10,14 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.Node;
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-gradient-to-br from-ocean-50 to-blue-50">
-        {children}
+        <TRPCProvider>
+          {children}
+        </TRPCProvider>
       </body>
     </html>
   );
