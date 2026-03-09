@@ -1,4 +1,5 @@
 import { Button, Card } from '@monorepo/ui';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -37,13 +38,17 @@ export default function Home() {
         </div>
 
         <div className="flex gap-4 justify-center mt-8">
-          <Button size="lg">Get Started</Button>
-          <Button variant="secondary" size="lg">View Demo</Button>
+          <Link href="/freelance">
+            <Button size="lg">Get Started</Button>
+          </Link>
+          <Link href="/freelance/proposals">
+            <Button variant="secondary" size="lg">View Demo</Button>
+          </Link>
         </div>
 
         <div className="mt-12 p-6 bg-white/50 rounded-lg backdrop-blur">
           <p className="text-sm text-gray-500">
-            🚧 Currently in development - v0.1.0
+            🚧 v0.2.0 - Freelance Management Module
           </p>
         </div>
       </div>
