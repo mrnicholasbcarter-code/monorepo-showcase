@@ -23,6 +23,34 @@ export const agentsRouter = router({
       limit: z.number().min(1).max(100).default(50),
     }))
     .query(async ({ input }) => {
+      if (!supabase) {
+        // High-fidelity mock data for showcase
+        return [
+          {
+            id: '1',
+            name: 'Architecture-Prime',
+            role: 'architecture',
+            status: 'active',
+            completedTasks: 142,
+            successRate: 0.98,
+            capabilities: ['system-design', 'security-audit'],
+            spawnedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+            lastActive: new Date().toISOString()
+          },
+          {
+            id: '2',
+            name: 'UX-Guardian',
+            role: 'graphic-design',
+            status: 'idle',
+            completedTasks: 85,
+            successRate: 0.95,
+            capabilities: ['figma-sync', 'component-gen'],
+            spawnedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+            lastActive: new Date().toISOString()
+          }
+        ] as any[];
+      }
+
       let query = supabase
         .from('agents')
         .select('*')
@@ -111,6 +139,15 @@ export const agentsRouter = router({
     }),
 
   getStats: publicProcedure.query(async () => {
+    if (!supabase) {
+      return {
+        totalAgents: 2,
+        activeAgents: 1,
+        totalTasksCompleted: 227,
+        avgSuccessRate: 0.965,
+      };
+    }
+
     const { data: agents, error } = await supabase
       .from('agents')
       .select('status, completed_tasks, success_rate');
@@ -118,10 +155,10 @@ export const agentsRouter = router({
     if (error) throw new Error(error.message);
 
     const totalAgents = agents.length;
-    const activeAgents = agents.filter(a => a.status === 'active').length;
-    const totalTasks = agents.reduce((sum, a) => sum + (a.completed_tasks || 0), 0);
+    const activeAgents = agents.filter((a: any) => a.status === 'active').length;
+    const totalTasks = agents.reduce((sum: number, a: any) => sum + (a.completed_tasks || 0), 0);
     const avgSuccessRate = agents.length > 0
-      ? agents.reduce((sum, a) => sum + (a.success_rate || 0), 0) / agents.length
+      ? agents.reduce((sum: number, a: any) => sum + (a.success_rate || 0), 0) / agents.length
       : 0;
 
     return {

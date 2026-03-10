@@ -2,7 +2,7 @@ export type ProposalStatus = 'draft' | 'submitted' | 'pending' | 'accepted' | 'r
 
 export type Platform = 'upwork' | 'freelancer' | 'guru' | 'fiverr' | 'linkedin' | 'other';
 
-export type AgentRole = 
+export type AgentRole =
   | 'architecture'
   | 'graphic-design'
   | 'marketing'
@@ -98,6 +98,27 @@ export interface CodeRepository {
   url: string;
   platform: 'github' | 'gitlab' | 'bitbucket';
   lastCommit?: Date;
-  status: 'active' | 'archived';
   reviewStatus?: 'pending' | 'approved' | 'changes-requested';
+}
+
+export interface FinancialRecord {
+  id: string;
+  proposalId?: string;
+  type: 'income' | 'expense' | 'tax';
+  amount: number;
+  currency: string;
+  label: string;
+  category: string;
+  status: 'paid' | 'pending' | 'overdue';
+  date: Date;
+}
+
+export interface FinancialStats {
+  netProfitYTD: number;
+  grossRevenue: number;
+  totalExpenses: number;
+  taxEstimate: number;
+  currentBalance: number;
+  recentInvoices: FinancialRecord[];
+  recentExpenses: FinancialRecord[];
 }

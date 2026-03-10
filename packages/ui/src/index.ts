@@ -1,6 +1,15 @@
 export { Button, type ButtonProps } from './components/Button';
-export { Card, type CardProps } from './components/Card';
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, type CardProps } from './components/Card';
 export { ProposalCard } from './components/ProposalCard';
+export { ProposalWizard } from './components/ProposalWizard';
 export { AgentCard } from './components/AgentCard';
+export { AgentSpawner } from './components/AgentSpawner';
 export { StatsCard } from './components/StatsCard';
+export * from './components/dialog';
+export * from './components/input';
+export * from './components/label';
+export * from './components/select';
+export * from './components/slider';
+export * from './components/tabs';
+export * from './components/scroll-area';
 export { cn } from './utils/cn';

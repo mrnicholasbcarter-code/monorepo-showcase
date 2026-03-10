@@ -32,6 +32,32 @@ export const proposalsRouter = router({
       offset: z.number().min(0).default(0),
     }))
     .query(async ({ input }) => {
+      if (!supabase) {
+        // High-fidelity mock data for showcase
+        return [
+          {
+            id: 'p1',
+            title: 'Next.js 14 Enterprise SaaS Infrastructure',
+            platform: 'upwork',
+            status: 'accepted',
+            budget: { min: 5000, max: 8000, currency: 'USD' },
+            mlScore: 0.94,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          },
+          {
+            id: 'p2',
+            title: 'AI Trading Bot with TensorFlow.js Integration',
+            platform: 'freelancer',
+            status: 'pending',
+            budget: { min: 2500, max: 4000, currency: 'USD' },
+            mlScore: 0.88,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        ] as any[];
+      }
+
       let query = supabase
         .from('proposals')
         .select('*')
@@ -122,6 +148,15 @@ export const proposalsRouter = router({
     }),
 
   getStats: publicProcedure.query(async () => {
+    if (!supabase) {
+      return {
+        totalProposals: 142,
+        acceptedProposals: 85,
+        winRate: 59.8,
+        byPlatform: { upwork: { total: 80, accepted: 50 }, freelancer: { total: 62, accepted: 35 } }
+      };
+    }
+
     const { data: proposals, error } = await supabase
       .from('proposals')
       .select('status, platform');
@@ -129,10 +164,10 @@ export const proposalsRouter = router({
     if (error) throw new Error(error.message);
 
     const total = proposals.length;
-    const accepted = proposals.filter(p => p.status === 'accepted').length;
+    const accepted = proposals.filter((p: any) => p.status === 'accepted').length;
     const winRate = total > 0 ? (accepted / total) * 100 : 0;
 
-    const byPlatform = proposals.reduce((acc, p) => {
+    const byPlatform = proposals.reduce((acc: any, p: any) => {
       if (!acc[p.platform]) {
         acc[p.platform] = { total: 0, accepted: 0 };
       }
