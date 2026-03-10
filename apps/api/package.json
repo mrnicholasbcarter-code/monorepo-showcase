@@ -9,15 +9,16 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@monorepo/types": "workspace:*",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "@trpc/server": "^10.45.0",
     "@supabase/supabase-js": "^2.39.0",
-    "zod": "^3.22.4",
+    "@trpc/server": "^10.45.0",
+    "cors": "^2.8.6",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
-    "@monorepo/types": "workspace:*"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
