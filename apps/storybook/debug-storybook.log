@@ -1,0 +1,86 @@
+[20:13:00.452] [INFO] [36mInitializing Storybook[39m
+[20:13:01.244] [DEBUG] Getting package.json info for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:01.378] [DEBUG] Getting CLI versions from NPM for storybook...
+[20:13:01.378] [DEBUG] Executing command: pnpm info storybook version
+[20:13:05.207] [INFO] Adding Storybook version 10.2.17 to your project
+[20:13:05.211] [DEBUG] Project type detected: nextjs
+[20:13:05.211] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:05.228] [INFO] Framework detected: nextjs-vite
+[20:13:05.229] [DEBUG] Getting installed version for vitest...
+[20:13:05.229] [DEBUG] Executing command: pnpm list "vitest" --json --depth=99
+[20:13:06.471] [DEBUG] Installed version for vitest: null
+[20:13:06.471] [DEBUG] Getting installed version for msw...
+[20:13:06.471] [DEBUG] Executing command: pnpm list "msw" --json --depth=99
+[20:13:07.903] [DEBUG] Installed version for msw: null
+[20:13:07.908] [INFO] base-generator-task-start: Generating Storybook configuration
+[20:13:07.909] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:07.909] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:07.909] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/package.json...
+[20:13:07.909] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:07.910] [INFO] base-generator-task: - Configuring ESLint plugin
+[20:13:07.910] [DEBUG] Detected flat config at /Users/nick/development/monorepo-showcase/apps/storybook/eslint.config.mjs
+[20:13:08.000] [DEBUG] Using cached version for storybook...
+[20:13:08.000] [DEBUG] Getting CLI versions from NPM for @storybook/nextjs-vite...
+[20:13:08.000] [DEBUG] Executing command: pnpm info @storybook/nextjs-vite version
+[20:13:08.048] [DEBUG] Getting CLI versions from NPM for @chromatic-com/storybook...
+[20:13:08.048] [DEBUG] Executing command: pnpm info @chromatic-com/storybook version
+[20:13:08.082] [DEBUG] Getting CLI versions from NPM for @storybook/addon-vitest...
+[20:13:08.082] [DEBUG] Executing command: pnpm info @storybook/addon-vitest version
+[20:13:08.190] [DEBUG] Getting CLI versions from NPM for @storybook/addon-a11y...
+[20:13:08.190] [DEBUG] Executing command: pnpm info @storybook/addon-a11y version
+[20:13:08.332] [DEBUG] Getting CLI versions from NPM for @storybook/addon-docs...
+[20:13:08.332] [DEBUG] Executing command: pnpm info @storybook/addon-docs version
+[20:13:08.408] [DEBUG] Getting CLI versions from NPM for @storybook/addon-onboarding...
+[20:13:08.408] [DEBUG] Executing command: pnpm info @storybook/addon-onboarding version
+[20:13:08.480] [DEBUG] Getting CLI versions from NPM for vite...
+[20:13:08.480] [DEBUG] Executing command: pnpm info vite version
+[20:13:08.540] [DEBUG] Getting CLI versions from NPM for eslint-plugin-storybook...
+[20:13:08.540] [DEBUG] Executing command: pnpm info eslint-plugin-storybook version
+[20:13:21.909] [INFO] base-generator-task: - Configuring main.ts
+[20:13:21.912] [INFO] base-generator-task: - Configuring preview.ts
+[20:13:21.914] [INFO] base-generator-task: - Adding Storybook command to package.json
+[20:13:21.916] [DEBUG] Getting package.json info for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:21.916] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:21.916] [DEBUG] Using cached package.json for /Users/nick/development/monorepo-showcase/apps/storybook/package.json...
+[20:13:21.918] [INFO] base-generator-task: - Copying framework templates
+[20:13:21.986] [DEBUG] Executing command: pnpm config get registry
+[20:13:24.075] [ERROR] [38;2;241;97;97mError: Cannot find @storybook/nextjs-vite/package.json, Error: Cannot find module '@storybook/nextjs-vite/package.json'
+Require stack:
+- .
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+    at Function.resolve (node:internal/modules/helpers:193:19)
+    at resolvePackageDir (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-5BFW6O7C.js:725:26)
+    at getRendererDir (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5401:12)
+    at templatePath (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5484:25)
+    at copyTemplateFiles (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5499:23)
+    at async baseGenerator (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1296:152)
+    at async GeneratorExecutionCommand.executeProjectGenerator (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1364:101)
+    at async GeneratorExecutionCommand.execute (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1386:27)
+    at async doInitiate (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:2840:68)
+
+ExecaError: Command failed with exit code 1: pnpm config get registry
+
+npm error code ENOWORKSPACES
+npm error This command does not support workspaces.
+npm error A complete log of this run can be found in: /Users/nick/.npm/_logs/2026-03-10T00_13_23_515Z-debug-0.log
+    at getFinalError (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-LZBZZS4H.js:13109:10)
+    at makeError (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-LZBZZS4H.js:14645:15)
+    at getAsyncResult (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-LZBZZS4H.js:17291:158)
+    at handlePromise (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-LZBZZS4H.js:17277:162)
+    at async PNPMProxy.getRegistryURL (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-LZBZZS4H.js:17898:24)
+    at async resolveUsingBranchInstall (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5383:15)
+    at async getRendererDir (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5406:12)
+    at async templatePath (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5484:19)
+    at async copyTemplateFiles (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5499:17)
+    at async baseGenerator (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1296:152)[39m
+    at getRendererDir (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5410:9)
+    at async templatePath (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5484:19)
+    at async copyTemplateFiles (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-D2NLHLEZ.js:5499:17)
+    at async baseGenerator (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1296:152)
+    at async GeneratorExecutionCommand.executeProjectGenerator (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1364:101)
+    at async GeneratorExecutionCommand.execute (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:1386:27)
+    at async doInitiate (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:2840:68)
+    at async file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:2882:20
+    at async withTelemetry (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/storybook/dist/_node-chunks/chunk-FTTIUZEI.js:218:12)
+    at async initiate (file:///Users/nick/.npm/_npx/b7be834efe44dce2/node_modules/create-storybook/dist/_node-chunks/chunk-OKM4BMV6.js:2875:24)
+[20:13:24.077] [INFO] Storybook collects completely anonymous usage telemetry. We use it to shape Storybook's roadmap and prioritize features. You can learn more, including how to opt out, at https://storybook.js.org/telemetry
