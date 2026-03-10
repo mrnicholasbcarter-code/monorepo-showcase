@@ -13,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gradient-to-br from-ocean-50 to-blue-50">
+    <html lang="en" className="dark">
+      <body className="min-h-screen bg-slate-950 text-slate-200 antialiased selection:bg-ocean-500/30 selection:text-ocean-200">
         <TRPCProvider>
           {children}
         </TRPCProvider>

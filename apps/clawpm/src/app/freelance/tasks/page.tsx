@@ -1,128 +1,121 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { trpc } from '@/lib/trpc';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@monorepo/ui';
-import { Plus, MoreHorizontal, Clock, CheckCircle2, User } from 'lucide-react';
+import { Plus, MoreHorizontal, Clock, User, Zap, Bot, Shield, AlertCircle, CheckSquare } from 'lucide-react';
 
-type Priority = 'high' | 'medium' | 'low';
-type Column = 'backlog' | 'in_progress' | 'review' | 'done';
-
-interface Task {
-    id: string;
-    title: string;
-    description: string;
-    priority: Priority;
-    assignee: string;
-    dueDate: string;
-    tags: string[];
-}
-
-const initialColumns: Record<Column, { label: string; tasks: Task[] }> = {
-    backlog: {
-        label: 'Backlog',
-        tasks: [
-            { id: '1', title: 'Research competitor pricing', description: 'Analyze top 5 competitor pricing models', priority: 'medium', assignee: 'You', dueDate: 'Mar 15', tags: ['research'] },
-            { id: '2', title: 'Draft cold outreach template', description: 'Create 3 cold outreach variants for Upwork', priority: 'high', assignee: 'Genesis', dueDate: 'Mar 14', tags: ['marketing', 'ai'] },
-        ],
-    },
-    in_progress: {
-        label: 'In Progress',
-        tasks: [
-            { id: '3', title: 'Build analytics dashboard', description: 'Implement Chart.js graphs for revenue tracking', priority: 'high', assignee: 'You', dueDate: 'Mar 12', tags: ['dev'] },
-            { id: '4', title: 'Optimize proposal scoring model', description: 'Improve ML accuracy from 82% to 95%', priority: 'high', assignee: 'Scout', dueDate: 'Mar 11', tags: ['ai', 'ml'] },
-        ],
-    },
-    review: {
-        label: 'In Review',
-        tasks: [
-            { id: '5', title: 'New proposal creation form', description: 'UX review for the multi-step proposal wizard', priority: 'medium', assignee: 'You', dueDate: 'Mar 10', tags: ['ux', 'dev'] },
-        ],
-    },
-    done: {
-        label: 'Done',
-        tasks: [
-            { id: '6', title: 'Set up monorepo Storybook', description: 'Initialized component playground with all UI primitives', priority: 'low', assignee: 'You', dueDate: 'Mar 9', tags: ['infra'] },
-            { id: '7', title: 'Integrate tRPC + Supabase', description: 'Full type-safe API layer with edge functions', priority: 'high', assignee: 'You', dueDate: 'Mar 8', tags: ['backend'] },
-        ],
-    },
+const priorityColors: Record<string, string> = {
+    urgent: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
+    high: 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+    medium: 'bg-ocean-500/20 text-ocean-400 border border-ocean-500/30',
+    low: 'bg-slate-500/20 text-slate-400 border border-slate-500/30',
 };
 
-const priorityColors: Record<Priority, string> = {
-    high: 'bg-red-500/20 text-red-400 border border-red-500/30',
-    medium: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-    low: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-};
-
-const columnColors: Record<Column, string> = {
-    backlog: 'border-slate-700',
-    in_progress: 'border-blue-500/40',
-    review: 'border-violet-500/40',
-    done: 'border-emerald-500/40',
+const columnHeaders: Record<string, string> = {
+    'todo': 'Task Queue',
+    'in-progress': 'Active Ops',
+    'review': 'QA / Staging',
+    'done': 'Secured',
 };
 
 export default function TasksPage() {
-    const [columns, setColumns] = useState(initialColumns);
+    const { data: tasks, isLoading } = trpc.tasks.list.useQuery({ status: 'all' });
+
+    const getColumnTasks = (status: string) => tasks?.filter((t: any) => t.status === status) || [];
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[80vh] gap-6">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-ocean-500/20 blur-3xl animate-pulse rounded-full" />
+                    <div className="w-16 h-16 border-4 border-ocean-500/20 border-t-ocean-500 rounded-full animate-spin relative z-10" />
+                </div>
+                <p className="text-slate-500 font-black text-[10px] uppercase tracking-[0.4em] animate-pulse">Syncing Neural Registry...</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-col h-full gap-6 p-6">
-            <div className="flex items-center justify-between">
+        <div className="flex flex-col h-full gap-10 p-10 bg-transparent">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Task Board</h1>
-                    <p className="text-slate-400 text-sm mt-1">Kanban-style task management for your freelance workflow.</p>
+                    <h1 className="text-5xl font-black text-white uppercase tracking-tighterAlpha flex items-center gap-4">
+                        <CheckSquare className="h-10 w-10 text-ocean-400" /> Task Queue
+                    </h1>
+                    <p className="text-slate-500 font-bold uppercase tracking-widestAlpha mt-3 flex items-center gap-2">
+                        <Shield className="h-3.5 w-3.5" /> Autonomous Handoff Protocol Active
+                    </p>
                 </div>
-                <Button className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2">
-                    <Plus className="h-4 w-4" /> New Task
-                </Button>
+                <div className="flex gap-4">
+                    <Button variant="outline" className="border-white/10 text-slate-400 hover:bg-white/5 uppercase font-black text-[10px] tracking-widestAlpha h-12 px-6">Archive All</Button>
+                    <Button className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 h-12 px-8 shadow-xl shadow-ocean-950/50 uppercase font-black text-[10px] tracking-widestAlpha group">
+                        <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
+                        Deploy Task
+                    </Button>
+                </div>
             </div>
 
-            <div className="flex gap-5 overflow-x-auto pb-4 flex-1">
-                {(Object.entries(columns) as [Column, typeof columns[Column]][]).map(([colId, col]) => (
-                    <div key={colId} className={`min-w-[300px] rounded-xl border ${columnColors[colId]} bg-white/[0.02] backdrop-blur-sm flex flex-col`}>
-                        <div className="p-4 border-b border-white/5 flex items-center justify-between">
-                            <span className="font-semibold text-white">{col.label}</span>
-                            <span className="text-xs bg-white/10 text-slate-400 rounded-full px-2 py-0.5">{col.tasks.length}</span>
+            <div className="flex gap-8 overflow-x-auto pb-10 flex-1 custom-scrollbar -mx-2 px-2">
+                {['todo', 'in-progress', 'review', 'done'].map((status) => (
+                    <div key={status} className="min-w-[340px] w-[340px] rounded-[2rem] border border-white/5 bg-white/[0.01] backdrop-blur-3xl flex flex-col group/column transition-all hover:bg-white/[0.02] hover:border-white/10">
+                        <div className="p-6 border-b border-white/[0.03] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${status === 'in-progress' ? 'bg-ocean-400 animate-pulse' : status === 'done' ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                                <span className="font-black text-slate-200 uppercase tracking-widestAlpha text-xs">{columnHeaders[status]}</span>
+                            </div>
+                            <span className="text-[10px] font-black bg-white/5 text-slate-500 rounded-lg px-3 py-1.5 border border-white/5 group-hover/column:text-ocean-400 group-hover/column:border-ocean-500/20 transition-all">{getColumnTasks(status).length}</span>
                         </div>
-                        <div className="p-3 flex flex-col gap-3 flex-1 overflow-y-auto">
-                            {col.tasks.map((task, i) => (
-                                <motion.div
-                                    key={task.id}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    className="bg-white/[0.03] hover:bg-white/[0.06] border border-white/8 rounded-lg p-3 cursor-pointer group transition-all"
-                                >
-                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                        <p className="text-sm font-medium text-white leading-tight">{task.title}</p>
-                                        <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <MoreHorizontal className="h-4 w-4 text-slate-400" />
-                                        </button>
-                                    </div>
-                                    <p className="text-xs text-slate-500 mb-3 leading-relaxed">{task.description}</p>
-                                    <div className="flex flex-wrap gap-1 mb-3">
-                                        {task.tags.map(tag => (
-                                            <span key={tag} className="text-xs bg-ocean-900/50 text-ocean-300 border border-ocean-700/30 rounded-full px-2 py-0.5">
-                                                {tag}
+                        <div className="p-5 flex flex-col gap-4 flex-1 overflow-y-auto custom-scrollbar">
+                            <AnimatePresence>
+                                {getColumnTasks(status).map((task: any, i: number) => (
+                                    <motion.div
+                                        key={task.id}
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ delay: i * 0.03 }}
+                                        className="bg-slate-900/40 hover:bg-slate-900/60 border border-white/5 rounded-2xl p-6 cursor-pointer group relative transition-all shadow-xl hover:shadow-ocean-950/20 active:scale-[0.98] hover:border-white/10"
+                                    >
+                                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <MoreHorizontal className="h-4 w-4 text-slate-600 hover:text-white" />
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className={`text-[9px] font-black uppercase tracking-widestAlpha px-2 py-0.5 rounded-md ${priorityColors[task.priority]}`}>
+                                                {task.priority}
                                             </span>
-                                        ))}
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className={`text-xs rounded-full px-2 py-0.5 ${priorityColors[task.priority]}`}>
-                                            {task.priority}
-                                        </span>
-                                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                                            <Clock className="h-3 w-3" />
-                                            {task.dueDate}
-                                            <div className="flex items-center gap-1">
-                                                <User className="h-3 w-3" />
-                                                {task.assignee}
+                                            {task.priority === 'urgent' && <AlertCircle className="h-3.5 w-3.5 text-rose-500 animate-pulse" />}
+                                        </div>
+
+                                        <h3 className="text-sm font-black text-white leading-snug mb-3 uppercase tracking-tighterAlpha group-hover:text-ocean-400 transition-colors">{task.title}</h3>
+                                        <p className="text-[11px] text-slate-500 mb-5 leading-relaxed font-bold uppercase tracking-tight italic opacity-80">{task.description}</p>
+
+                                        <div className="flex flex-wrap gap-2 mb-6">
+                                            {task.tags?.map((tag: string) => (
+                                                <span key={tag} className="text-[8px] font-black uppercase tracking-widestAlpha bg-black/40 text-ocean-400 border border-ocean-800/20 px-2 py-1 rounded-md">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/[0.05]">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-600/40 border border-violet-500/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                    <Bot className="h-3.5 w-3.5 text-violet-400" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widestAlpha">Scout AI-4</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-600 uppercase tracking-widestAlpha group-hover:text-slate-400 transition-colors">
+                                                <Clock className="h-3 w-3" />
+                                                {task.dueDate}
                                             </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                            <button className="text-sm text-slate-600 hover:text-slate-400 flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors">
-                                <Plus className="h-4 w-4" /> Add task
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                            <button className="text-[10px] font-black text-slate-600 hover:text-ocean-400 flex items-center justify-center gap-2 p-4 rounded-2xl border border-dashed border-white/5 hover:border-ocean-500/30 hover:bg-ocean-500/[0.02] transition-all uppercase tracking-widestAlpha mt-2">
+                                <Plus className="h-3.5 w-3.5" /> Initiate Signal
                             </button>
                         </div>
                     </div>
