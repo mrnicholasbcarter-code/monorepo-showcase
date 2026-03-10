@@ -2,7 +2,7 @@
 
 import { trpc } from '@/lib/trpc';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@monorepo/ui';
+import { Button, cn } from '@monorepo/ui';
 import {
     GitBranch,
     GitCommit,
