@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import type { Agent } from '@monorepo/types';
 import { cn } from '../utils/cn';
