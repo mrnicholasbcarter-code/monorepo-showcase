@@ -71,10 +71,12 @@ export const AgentSpawner = ({ onSpawn }: AgentSpawnerProps) => {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 shadow-lg shadow-ocean-900/40">
-                    <Plus className="h-4 w-4" /> Provision AI Agent
-                </Button>
+            <DialogTrigger
+                render={
+                    <Button hover={false} className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 shadow-lg shadow-ocean-900/40" />
+                }
+            >
+                <Plus className="h-4 w-4" /> Provision AI Agent
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] border-white/10 bg-slate-950/90 backdrop-blur-2xl text-white">
                 <DialogHeader>

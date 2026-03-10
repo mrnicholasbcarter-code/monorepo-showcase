@@ -63,10 +63,12 @@ export const ProposalWizard = ({ onCreate }: { onCreate?: (proposal: any) => voi
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 shadow-lg shadow-ocean-900/40">
-                    <Sparkles className="h-4 w-4" /> New Proposal Lab
-                </Button>
+            <DialogTrigger
+                render={
+                    <Button hover={false} className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 shadow-lg shadow-ocean-900/40" />
+                }
+            >
+                <Sparkles className="h-4 w-4" /> New Proposal Lab
             </DialogTrigger>
             <DialogContent className="sm:max-w-[700px] border-white/10 bg-slate-950/95 backdrop-blur-3xl text-white p-0 overflow-hidden">
                 <div className="flex h-[500px]">
