@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../../trpc';
 import { supabase } from '../../config/supabase';
-import type { Proposal } from '@monorepo/types';
+import type { Proposal, Platform, ProposalStatus } from '@monorepo/types';
+import { v4 as uuidv4 } from 'uuid';
+import { proposalsRegistry, setProposalsRegistry } from '../../lib/state';
 
 const proposalCreateSchema = z.object({
   title: z.string().min(1),
@@ -18,10 +20,18 @@ const proposalCreateSchema = z.object({
 });
 
 const proposalUpdateSchema = proposalCreateSchema.partial().extend({
-  id: z.string().uuid(),
+  id: z.string(),
   status: z.enum(['draft', 'submitted', 'pending', 'accepted', 'rejected', 'withdrawn']).optional(),
   mlScore: z.number().min(0).max(1).optional(),
 });
+
+const simulateMLScore = (platform: string, budgetMax: number) => {
+  // Sophisticated rules for showcase
+  let score = 0.5 + Math.random() * 0.3;
+  if (platform === 'upwork') score += 0.1;
+  if (budgetMax > 5000) score += 0.05;
+  return Math.min(score, 0.99);
+};
 
 export const proposalsRouter = router({
   list: publicProcedure
@@ -33,29 +43,10 @@ export const proposalsRouter = router({
     }))
     .query(async ({ input }) => {
       if (!supabase) {
-        // High-fidelity mock data for showcase
-        return [
-          {
-            id: 'p1',
-            title: 'Next.js 14 Enterprise SaaS Infrastructure',
-            platform: 'upwork',
-            status: 'accepted',
-            budget: { min: 5000, max: 8000, currency: 'USD' },
-            mlScore: 0.94,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'p2',
-            title: 'AI Trading Bot with TensorFlow.js Integration',
-            platform: 'freelancer',
-            status: 'pending',
-            budget: { min: 2500, max: 4000, currency: 'USD' },
-            mlScore: 0.88,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ] as any[];
+        let filtered = proposalsRegistry;
+        if (input.status !== 'all') filtered = filtered.filter(p => p.status === input.status);
+        if (input.platform !== 'all') filtered = filtered.filter(p => p.platform === input.platform);
+        return filtered.slice(input.offset, input.offset + input.limit);
       }
 
       let query = supabase
@@ -80,9 +71,13 @@ export const proposalsRouter = router({
     }),
 
   getById: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
-      if (!supabase) throw new Error('Supabase not connected');
+      if (!supabase) {
+        const proposal = proposalsRegistry.find(p => p.id === input.id);
+        if (!proposal) throw new Error('Proposal not found');
+        return proposal;
+      }
       const { data, error } = await supabase
         .from('proposals')
         .select('*')
@@ -98,15 +93,17 @@ export const proposalsRouter = router({
     .input(proposalCreateSchema)
     .mutation(async ({ input }) => {
       if (!supabase) {
-        // AI Logic Simulation: Generate high mlScore for good looking demonstrations
-        return {
-          id: Math.random().toString(36).substr(2, 9),
+        const newProposal: Proposal = {
+          id: uuidv4(),
           ...input,
           status: 'submitted',
-          mlScore: 0.85 + Math.random() * 0.1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as any;
+          mlScore: simulateMLScore(input.platform, input.budget.max),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          jobUrl: input.jobUrl || '',
+        };
+        setProposalsRegistry([newProposal, ...proposalsRegistry]);
+        return newProposal;
       }
 
       const proposal = {
@@ -131,7 +128,22 @@ export const proposalsRouter = router({
     .input(proposalUpdateSchema)
     .mutation(async ({ input }) => {
       const { id, ...updates } = input;
-      if (!supabase) return { id, ...updates, updatedAt: new Date().toISOString() } as any;
+      if (!supabase) {
+        const index = proposalsRegistry.findIndex(p => p.id === id);
+        if (index === -1) throw new Error('Proposal not found');
+
+        const updatedProposal = {
+          ...proposalsRegistry[index],
+          ...updates,
+          updatedAt: new Date()
+        } as Proposal;
+
+        const newRegistry = [...proposalsRegistry];
+        newRegistry[index] = updatedProposal;
+        setProposalsRegistry(newRegistry);
+
+        return updatedProposal;
+      }
 
       const { data, error } = await supabase
         .from('proposals')
@@ -149,9 +161,12 @@ export const proposalsRouter = router({
     }),
 
   delete: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      if (!supabase) return { success: true };
+      if (!supabase) {
+        setProposalsRegistry(proposalsRegistry.filter(p => p.id !== input.id));
+        return { success: true };
+      }
       const { error } = await supabase
         .from('proposals')
         .delete()
@@ -164,11 +179,26 @@ export const proposalsRouter = router({
 
   getStats: publicProcedure.query(async () => {
     if (!supabase) {
+      const total = proposalsRegistry.length;
+      const accepted = proposalsRegistry.filter(p => p.status === 'accepted').length;
+      const winRate = total > 0 ? (accepted / total) * 100 : 0;
+
+      const byPlatform = proposalsRegistry.reduce((acc, p) => {
+        if (!acc[p.platform]) {
+          acc[p.platform] = { total: 0, accepted: 0 };
+        }
+        acc[p.platform].total++;
+        if (p.status === 'accepted') {
+          acc[p.platform].accepted++;
+        }
+        return acc;
+      }, {} as Record<string, { total: number; accepted: number }>);
+
       return {
-        totalProposals: 142,
-        acceptedProposals: 85,
-        winRate: 59.8,
-        byPlatform: { upwork: { total: 80, accepted: 50 }, freelancer: { total: 62, accepted: 35 } }
+        totalProposals: total,
+        acceptedProposals: accepted,
+        winRate: Math.round(winRate * 10) / 10,
+        byPlatform,
       };
     }
 

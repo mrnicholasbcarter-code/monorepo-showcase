@@ -20,7 +20,40 @@ const columnHeaders: Record<string, string> = {
 };
 
 export default function TasksPage() {
+    const utils = trpc.useContext();
     const { data: tasks, isLoading } = trpc.tasks.list.useQuery({ status: 'all' });
+
+    const createTask = trpc.tasks.create.useMutation({
+        onSuccess: () => {
+            utils.tasks.list.invalidate();
+        }
+    });
+
+    const updateTask = trpc.tasks.update.useMutation({
+        onSuccess: () => {
+            utils.tasks.list.invalidate();
+        }
+    });
+
+    const advanceTask = (task: any) => {
+        const statuses = ['todo', 'in-progress', 'review', 'done'];
+        const currentIndex = statuses.indexOf(task.status);
+        const nextStatus = statuses[Math.min(currentIndex + 1, statuses.length - 1)];
+
+        if (nextStatus !== task.status) {
+            updateTask.mutate({ id: task.id, status: nextStatus as any });
+        }
+    };
+
+    const handleDeployTask = () => {
+        createTask.mutate({
+            title: `New Analysis Operation ${Math.floor(Math.random() * 1000)}`,
+            description: 'Autonomously generated task from command center telemetry.',
+            priority: 'medium',
+            status: 'todo',
+            tags: ['auto-gen', 'scout'],
+        });
+    };
 
     const getColumnTasks = (status: string) => tasks?.filter((t: any) => t.status === status) || [];
 
@@ -49,7 +82,11 @@ export default function TasksPage() {
                 </div>
                 <div className="flex gap-4">
                     <Button variant="outline" className="border-white/10 text-slate-400 hover:bg-white/5 uppercase font-black text-[10px] tracking-widestAlpha h-12 px-6">Archive All</Button>
-                    <Button className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 h-12 px-8 shadow-xl shadow-ocean-950/50 uppercase font-black text-[10px] tracking-widestAlpha group">
+                    <Button
+                        className="bg-ocean-600 hover:bg-ocean-500 text-white gap-2 h-12 px-8 shadow-xl shadow-ocean-950/50 uppercase font-black text-[10px] tracking-widestAlpha group disabled:opacity-50"
+                        onClick={handleDeployTask}
+                        disabled={createTask.isLoading}
+                    >
                         <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" />
                         Deploy Task
                     </Button>
@@ -107,8 +144,24 @@ export default function TasksPage() {
                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widestAlpha">Scout AI-4</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-600 uppercase tracking-widestAlpha group-hover:text-slate-400 transition-colors">
-                                                <Clock className="h-3 w-3" />
-                                                {task.dueDate}
+                                                {task.status !== 'done' ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 px-2 text-[8px] bg-white/5 hover:bg-ocean-500/20 hover:text-ocean-400"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            advanceTask(task);
+                                                        }}
+                                                        disabled={updateTask.isLoading}
+                                                    >
+                                                        Advance Scope
+                                                    </Button>
+                                                ) : (
+                                                    <span className="text-emerald-500 flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" /> SECURED
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>

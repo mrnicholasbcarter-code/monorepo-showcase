@@ -1,28 +1,35 @@
 import { z } from 'zod';
 import { publicProcedure, router } from '../../trpc';
 import { supabase } from '../../config/supabase';
+import { proposalsRegistry, agentsRegistry } from '../../lib/state';
 
 export const analyticsRouter = router({
     getOverview: publicProcedure.query(async () => {
-        if (!supabase) {
-            return {
-                revenue: {
-                    total: 124500,
-                    growth: 12.5,
-                    history: [
-                        { date: '2024-01', value: 8500 },
-                        { date: '2024-02', value: 9200 },
-                        { date: '2024-03', value: 11000 },
-                    ]
-                },
-                proposals: {
-                    sent: 142,
-                    conversion: 64,
-                },
-                efficiency: 94,
-            };
-        }
-        // Real Supabase logic would go here
-        return null;
+        // Dynamic stats based on actual registry counts for interactive showcase
+        const totalProposals = proposalsRegistry.length;
+        const activeAgents = agentsRegistry.filter(a => a.status === 'active').length;
+        const acceptedProposals = proposalsRegistry.filter(p => p.status === 'accepted').length;
+        const winRate = totalProposals > 0 ? (acceptedProposals / totalProposals) * 100 : 64;
+
+        // Simulating efficiency with a base and jitter
+        const baseEfficiency = 94.2;
+        const jitter = (Math.random() * 2) - 1;
+
+        return {
+            revenue: {
+                total: 124500 + (acceptedProposals * 5000),
+                growth: 12.5,
+                history: [
+                    { date: 'JAN', value: 38200 },
+                    { date: 'FEB', value: 42100 },
+                    { date: 'MAR', value: 52400 },
+                ]
+            },
+            proposals: {
+                sent: 142 + totalProposals,
+                conversion: Math.round(winRate),
+            },
+            efficiency: parseFloat((baseEfficiency + jitter).toFixed(1)),
+        };
     }),
 });

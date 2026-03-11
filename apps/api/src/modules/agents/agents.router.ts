@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { publicProcedure, router } from '../../trpc';
 import { supabase } from '../../config/supabase';
 import type { Agent } from '@monorepo/types';
+import { v4 as uuidv4 } from 'uuid';
+import { agentsRegistry, setAgentsRegistry } from '../../lib/state';
 
 const agentCreateSchema = z.object({
   name: z.string().min(1),
@@ -10,7 +12,7 @@ const agentCreateSchema = z.object({
 });
 
 const agentUpdateSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string().optional(),
   status: z.enum(['idle', 'active', 'busy', 'error', 'offline']).optional(),
   currentTask: z.string().optional().nullable(),
@@ -24,42 +26,9 @@ export const agentsRouter = router({
     }))
     .query(async ({ input }) => {
       if (!supabase) {
-        // High-fidelity mock data for showcase
-        return [
-          {
-            id: '1',
-            name: 'Architecture-Prime',
-            role: 'architecture',
-            status: 'active',
-            completedTasks: 142,
-            successRate: 0.98,
-            capabilities: ['system-design', 'security-audit'],
-            spawnedAt: new Date(Date.now() - 86400000 * 10).toISOString(),
-            lastActive: new Date().toISOString()
-          },
-          {
-            id: '2',
-            name: 'UX-Guardian',
-            role: 'graphic-design',
-            status: 'idle',
-            completedTasks: 85,
-            successRate: 0.95,
-            capabilities: ['figma-sync', 'component-gen'],
-            spawnedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-            lastActive: new Date().toISOString()
-          },
-          {
-            id: '3',
-            name: 'Growth-Catalyst',
-            role: 'marketing',
-            status: 'active',
-            completedTasks: 210,
-            successRate: 0.92,
-            capabilities: ['social-orchestration', 'ad-optimization'],
-            spawnedAt: new Date(Date.now() - 86400000 * 15).toISOString(),
-            lastActive: new Date().toISOString()
-          }
-        ] as any[];
+        let filtered = agentsRegistry;
+        if (input.status !== 'all') filtered = filtered.filter(a => a.status === input.status);
+        return filtered.slice(0, input.limit);
       }
 
       let query = supabase
@@ -80,9 +49,13 @@ export const agentsRouter = router({
     }),
 
   getById: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
-      if (!supabase) throw new Error('Supabase not connected');
+      if (!supabase) {
+        const agent = agentsRegistry.find(a => a.id === input.id);
+        if (!agent) throw new Error('Agent not found');
+        return agent;
+      }
       const { data, error } = await supabase
         .from('agents')
         .select('*')
@@ -98,16 +71,17 @@ export const agentsRouter = router({
     .input(agentCreateSchema)
     .mutation(async ({ input }) => {
       if (!supabase) {
-        // Simulation for showcase functionality
-        return {
-          id: Math.random().toString(36).substr(2, 9),
+        const newAgent: Agent = {
+          id: uuidv4(),
           ...input,
           status: 'idle',
           completedTasks: 0,
           successRate: 1.0,
-          spawnedAt: new Date().toISOString(),
-          lastActive: new Date().toISOString(),
-        } as any;
+          spawnedAt: new Date(),
+          lastActive: new Date(),
+        };
+        setAgentsRegistry([newAgent, ...agentsRegistry]);
+        return newAgent;
       }
 
       const agent = {
@@ -134,7 +108,18 @@ export const agentsRouter = router({
     .input(agentUpdateSchema)
     .mutation(async ({ input }) => {
       const { id, ...updates } = input;
-      if (!supabase) return { id, ...updates, lastActive: new Date().toISOString() } as any;
+      if (!supabase) {
+        const index = agentsRegistry.findIndex(a => a.id === id);
+        if (index === -1) throw new Error('Agent not found');
+
+        agentsRegistry[index] = {
+          ...agentsRegistry[index],
+          ...updates,
+          lastActive: new Date()
+        } as Agent;
+
+        return agentsRegistry[index];
+      }
 
       const { data, error } = await supabase
         .from('agents')
@@ -152,9 +137,13 @@ export const agentsRouter = router({
     }),
 
   terminate: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
-      if (!supabase) return { success: true };
+      if (!supabase) {
+        const index = agentsRegistry.findIndex(a => a.id === input.id);
+        if (index !== -1) agentsRegistry[index].status = 'offline';
+        return { success: true };
+      }
       const { error } = await supabase
         .from('agents')
         .update({ status: 'offline' })
@@ -167,11 +156,18 @@ export const agentsRouter = router({
 
   getStats: publicProcedure.query(async () => {
     if (!supabase) {
+      const totalAgents = agentsRegistry.length;
+      const activeAgents = agentsRegistry.filter(a => a.status === 'active').length;
+      const totalTasks = agentsRegistry.reduce((sum, a) => sum + (a.completedTasks || 0), 0);
+      const avgSuccessRate = agentsRegistry.length > 0
+        ? agentsRegistry.reduce((sum, a) => sum + (a.successRate || 0), 0) / agentsRegistry.length
+        : 0;
+
       return {
-        totalAgents: 3,
-        activeAgents: 2,
-        totalTasksCompleted: 437,
-        avgSuccessRate: 0.95,
+        totalAgents,
+        activeAgents,
+        totalTasksCompleted: totalTasks,
+        avgSuccessRate: Math.round(avgSuccessRate * 100) / 100,
       };
     }
 

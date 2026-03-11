@@ -13,6 +13,20 @@ export default function CommunicationsPage() {
     const { data: threads, isLoading: threadsLoading } = trpc.communications.listThreads.useQuery();
     const { data: messages, isLoading: messagesLoading } = trpc.communications.getThreadMessages.useQuery({ threadId: selected });
 
+    const utils = trpc.useContext();
+    const sendMutation = trpc.communications.sendMessage.useMutation({
+        onSuccess: () => {
+            utils.communications.getThreadMessages.invalidate({ threadId: selected });
+            utils.communications.listThreads.invalidate();
+            setDraft('');
+        }
+    });
+
+    const handleSend = () => {
+        if (!draft.trim()) return;
+        sendMutation.mutate({ threadId: selected, content: draft });
+    };
+
     const activeThread = threads?.find((t: any) => t.id === selected);
 
     if (threadsLoading) {
@@ -172,8 +186,9 @@ export default function CommunicationsPage() {
                                     className="flex-1 bg-transparent text-xs font-black text-white placeholder:text-slate-700 focus:outline-none uppercase tracking-widestAlpha"
                                 />
                                 <button
-                                    className="p-4 bg-ocean-600 hover:bg-ocean-500 text-white rounded-2xl shadow-glow transition-all active:scale-95 group"
-                                    onClick={() => setDraft('')}
+                                    className="p-4 bg-ocean-600 hover:bg-ocean-500 text-white rounded-2xl shadow-glow transition-all active:scale-95 group disabled:opacity-50 disabled:pointer-events-none"
+                                    onClick={handleSend}
+                                    disabled={sendMutation.isLoading}
                                 >
                                     <Send className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                 </button>

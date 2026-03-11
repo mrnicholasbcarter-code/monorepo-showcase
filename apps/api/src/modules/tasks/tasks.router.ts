@@ -2,42 +2,38 @@ import { z } from 'zod';
 import { publicProcedure, router } from '../../trpc';
 import { supabase } from '../../config/supabase';
 import type { Task } from '@monorepo/types';
+import { v4 as uuidv4 } from 'uuid';
+import { tasksRegistry, setTasksRegistry } from '../../lib/state';
 
 const taskCreateSchema = z.object({
     title: z.string().min(1),
     description: z.string().optional().default(''),
     status: z.enum(['todo', 'in-progress', 'review', 'done']).default('todo'),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
-    assignedAgent: z.string().uuid().optional(),
-    proposalId: z.string().uuid().optional(),
-    dueDate: z.string().optional(),
+    assignedAgent: z.string().optional(),
+    proposalId: z.string().optional(),
+    dueDate: z.string().optional().or(z.date().optional()),
     tags: z.array(z.string()).default([]),
 });
 
 const taskUpdateSchema = taskCreateSchema.partial().extend({
-    id: z.string().uuid(),
+    id: z.string(),
 });
 
 export const tasksRouter = router({
     list: publicProcedure
         .input(z.object({
             status: z.enum(['todo', 'in-progress', 'review', 'done', 'all']).default('all'),
-            assignedAgent: z.string().uuid().optional(),
-            proposalId: z.string().uuid().optional(),
+            assignedAgent: z.string().optional(),
+            proposalId: z.string().optional(),
         }))
         .query(async ({ input }) => {
             if (!supabase) {
-                // Mock Intelligence: Synthetic Task Registry
-                const mockTasks: Task[] = [
-                    { id: 't1', title: 'Architect Edge Functions', description: 'Design serverless runtime for agent orchestration', status: 'in-progress', priority: 'high', tags: ['infra', 'backend'], dueDate: '2024-03-15', created_at: '2024-03-01', updated_at: '2024-03-01' },
-                    { id: 't2', title: 'Optimize LLM Context', description: 'Implement sliding window for long-running threads', status: 'todo', priority: 'urgent', tags: ['ai', 'perf'], dueDate: '2024-03-12', created_at: '2024-03-02', updated_at: '2024-03-02' },
-                    { id: 't3', title: 'UI Glassmorphism Audit', description: 'Review backdrop-blur values across orbit dashboards', status: 'review', priority: 'medium', tags: ['ui', 'ux'], dueDate: '2024-03-10', created_at: '2024-03-03', updated_at: '2024-03-03' },
-                    { id: 't4', title: 'Stripe API Webhooks', description: 'Handle autonomous subscription lifecycle events', status: 'done', priority: 'high', tags: ['fintech'], dueDate: '2024-03-09', created_at: '2024-03-04', updated_at: '2024-03-04' },
-                    { id: 't5', title: 'Neural Threading Analysis', description: 'Analyze multi-agent collision patterns in sandbox', status: 'in-progress', priority: 'high', tags: ['ai-safety'], dueDate: '2024-03-18', created_at: '2024-03-05', updated_at: '2024-03-05' },
-                    { id: 't6', title: 'Cloudflare D1 Migration', description: 'Migrate local storage to serverless SQL network', status: 'todo', priority: 'medium', tags: ['db'], dueDate: '2024-03-22', created_at: '2024-03-06', updated_at: '2024-03-06' },
-                ];
-
-                return mockTasks.filter(t => input.status === 'all' || t.status === input.status);
+                let filtered = tasksRegistry;
+                if (input.status !== 'all') filtered = filtered.filter(t => t.status === input.status);
+                if (input.assignedAgent) filtered = filtered.filter(t => t.assignedAgent === input.assignedAgent);
+                if (input.proposalId) filtered = filtered.filter(t => t.proposalId === input.proposalId);
+                return filtered;
             }
 
             let query = supabase.from('tasks').select('*').order('created_at', { ascending: false });
@@ -60,7 +56,17 @@ export const tasksRouter = router({
     create: publicProcedure
         .input(taskCreateSchema)
         .mutation(async ({ input }) => {
-            if (!supabase) return { id: 'mock-id', ...input, created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Task;
+            if (!supabase) {
+                const newTask: Task = {
+                    id: uuidv4(),
+                    ...input,
+                    dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                } as Task;
+                setTasksRegistry([newTask, ...tasksRegistry]);
+                return newTask;
+            }
 
             const { data, error } = await supabase
                 .from('tasks')
@@ -79,7 +85,23 @@ export const tasksRouter = router({
         .input(taskUpdateSchema)
         .mutation(async ({ input }) => {
             const { id, ...updates } = input;
-            if (!supabase) return { id, ...updates, updated_at: new Date().toISOString() } as Task;
+            if (!supabase) {
+                const index = tasksRegistry.findIndex(t => t.id === id);
+                if (index === -1) throw new Error('Task not found');
+
+                const updatedTask = {
+                    ...tasksRegistry[index],
+                    ...updates,
+                    dueDate: updates.dueDate ? new Date(updates.dueDate) : tasksRegistry[index].dueDate,
+                    updatedAt: new Date()
+                } as Task;
+
+                const newTasksRegistry = [...tasksRegistry];
+                newTasksRegistry[index] = updatedTask;
+                setTasksRegistry(newTasksRegistry);
+
+                return updatedTask;
+            }
 
             const { data, error } = await supabase
                 .from('tasks')
@@ -95,9 +117,12 @@ export const tasksRouter = router({
         }),
 
     delete: publicProcedure
-        .input(z.object({ id: z.string().uuid() }))
+        .input(z.object({ id: z.string() }))
         .mutation(async ({ input }) => {
-            if (!supabase) return { success: true };
+            if (!supabase) {
+                setTasksRegistry(tasksRegistry.filter(t => t.id !== input.id));
+                return { success: true };
+            }
             const { error } = await supabase.from('tasks').delete().eq('id', input.id);
             if (error) throw new Error(error.message);
             return { success: true };

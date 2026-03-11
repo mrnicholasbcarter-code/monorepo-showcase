@@ -106,15 +106,15 @@ export default function FinancialsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-white/5 pt-12">
                             <div className="space-y-2">
                                 <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Gross Inbound</div>
-                                <div className="text-2xl font-black text-white uppercase tracking-tighterAlpha">${(stats?.grossRevenue || 0 / 1000).toFixed(1)}k</div>
+                                <div className="text-2xl font-black text-white uppercase tracking-tighterAlpha">${((stats?.grossRevenue || 0) / 1000).toFixed(1)}k</div>
                             </div>
                             <div className="space-y-2">
                                 <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Resource Burn</div>
-                                <div className="text-2xl font-black text-rose-500 uppercase tracking-tighterAlpha">${(stats?.totalExpenses || 0 / 1000).toFixed(1)}k</div>
+                                <div className="text-2xl font-black text-rose-500 uppercase tracking-tighterAlpha">${((stats?.totalExpenses || 0) / 1000).toFixed(1)}k</div>
                             </div>
                             <div className="space-y-2">
                                 <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Tax Liability</div>
-                                <div className="text-2xl font-black text-amber-500 uppercase tracking-tighterAlpha">${(stats?.taxEstimate || 0 / 1000).toFixed(1)}k</div>
+                                <div className="text-2xl font-black text-amber-500 uppercase tracking-tighterAlpha">${((stats?.taxEstimate || 0) / 1000).toFixed(1)}k</div>
                             </div>
                         </div>
                     </div>
